@@ -1,4 +1,44 @@
 #!/usr/bin/env bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ----------------------------
+# Config with safe defaults
+# ----------------------------
+RG_NAME="${RG_NAME:-rg-iam-tfstate}"
+LOCATION="${LOCATION:-eastus}"
+CONTAINER_NAME="${CONTAINER_NAME:-tfstate}"
+
+# Optional override, otherwise generated later
+SA_NAME="${SA_NAME:-}"
+
+# ----------------------------
+# Require Azure CLI login
+# ----------------------------
+if ! az account show >/dev/null 2>&1; then
+  echo "Azure CLI is not logged in. Run: az login"
+  exit 1
+fi
+
+SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+TENANT_ID="$(az account show --query tenantId -o tsv)"
+ACCOUNT_UPN="$(az account show --query user.name -o tsv 2>/dev/null || true)"
+
+if [[ -z "$SUBSCRIPTION_ID" || "$SUBSCRIPTION_ID" == "null" ]]; then
+  echo "No active subscription found in Azure CLI context."
+  echo "Run: az account list -o table"
+  exit 1
+fi
+
+echo ""
+echo "Using account: ${ACCOUNT_UPN:-unknown}"
+echo "Using tenant:  ${TENANT_ID}"
+echo "Using sub:     ${SUBSCRIPTION_ID}"
+echo "RG:            ${RG_NAME}"
+echo "Location:      ${LOCATION}"
+echo "Container:     ${CONTAINER_NAME}"
+echo ""
+
 set -euo pipefail
 
 # -----------------------------
