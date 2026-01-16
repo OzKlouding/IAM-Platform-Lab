@@ -38,6 +38,9 @@ ACCOUNT_UPN="$(az account show --query user.name -o tsv 2>/dev/null || true)"
 # Pin context and also pass subscription on every call
 az account set --subscription "$SUBSCRIPTION_ID" >/dev/null
 AZ_SUB=(--subscription "$SUBSCRIPTION_ID")
+export AZURE_SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
+export ARM_SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
+
 
 # Generate SA name if not provided
 if [[ -z "$SA_NAME" ]]; then
