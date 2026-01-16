@@ -72,20 +72,28 @@ echo "Creating or updating resource group..."
 az group create $AZ_SUB --name "$RG_NAME" --location "$LOCATION" -o none
 
 echo "Creating or updating storage account..."
-if az storage account show $AZ_SUB --name "$SA_NAME" --resource-group "$RG_NAME" -o none >/dev/null 2>&1; then
+
+SA_URL="https://management.azure.com/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RG_NAME}/providers/Microsoft.Storage/storageAccounts/${SA_NAME}?api-version=2023-01-01"
+
+# Exists check via ARM REST
+SA_EXISTS="$(az rest --method get --url "$SA_URL" --query "name" -o tsv 2>/dev/null || true)"
+
+if [[ -n "$SA_EXISTS" && "$SA_EXISTS" != "null" ]]; then
   echo "Storage account already exists: $SA_NAME"
 else
-  az storage account create $AZ_SUB \
-    --name "$SA_NAME" \
-    --resource-group "$RG_NAME" \
-    --location "$LOCATION" \
-    --sku Standard_LRS \
-    --kind StorageV2 \
-    --min-tls-version TLS1_2 \
-    --allow-blob-public-access false \
-    -o none
-  echo "Storage account created: $SA_NAME"
+  az rest --method put --url "$SA_URL" --body "{
+    \"location\": \"${LOCATION}\",
+    \"kind\": \"StorageV2\",
+    \"sku\": { \"name\": \"Standard_LRS\" },
+    \"properties\": {
+      \"allowBlobPublicAccess\": false,
+      \"minimumTlsVersion\": \"TLS1_2\"
+    }
+  }" -o none
+  echo "Storage account create requested: $SA_NAME"
+  echo "DEBUG: Using ARM REST for storage account"
 fi
+
 # Get a storage context, prefer Entra auth, fallback to account key if needed
 AUTH_MODE="login"
 SA_KEY=""
