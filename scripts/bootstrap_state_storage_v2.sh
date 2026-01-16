@@ -37,7 +37,9 @@ ACCOUNT_UPN="$(az account show --query user.name -o tsv 2>/dev/null || true)"
 
 # Pin context and also pass subscription on every call
 az account set --subscription "$SUBSCRIPTION_ID" >/dev/null
-AZ_SUB=(--subscription "$SUBSCRIPTION_ID")
+AZ_SUB="--subscription $SUBSCRIPTION_ID"
+
+# Force subscription context for all Azure CLI commands (Windows Git Bash fix)
 export AZURE_SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
 export ARM_SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
 
@@ -60,20 +62,20 @@ echo ""
 
 # Permission probe
 echo "Checking permissions..."
-if ! az group exists "${AZ_SUB[@]}" --name "$RG_NAME" >/dev/null 2>&1; then
-  if ! az group create "${AZ_SUB[@]}" --name "$RG_NAME" --location "$LOCATION" -o none >/dev/null 2>&1; then
+if ! az group exists $AZ_SUB --name "$RG_NAME" >/dev/null 2>&1; then
+  if ! az group create $AZ_SUB --name "$RG_NAME" --location "$LOCATION" -o none >/dev/null 2>&1; then
     fail "No permission to create resource groups in subscription $SUBSCRIPTION_ID."
   fi
 fi
 
 echo "Creating or updating resource group..."
-az group create "${AZ_SUB[@]}" --name "$RG_NAME" --location "$LOCATION" -o none
+az group create $AZ_SUB --name "$RG_NAME" --location "$LOCATION" -o none
 
 echo "Creating or updating storage account..."
-if az storage account show "${AZ_SUB[@]}" --name "$SA_NAME" --resource-group "$RG_NAME" -o none >/dev/null 2>&1; then
+if az storage account show $AZ_SUB --name "$SA_NAME" --resource-group "$RG_NAME" -o none >/dev/null 2>&1; then
   echo "Storage account already exists: $SA_NAME"
 else
-  az storage account create "${AZ_SUB[@]}" \
+  az storage account create $AZ_SUB \
     --name "$SA_NAME" \
     --resource-group "$RG_NAME" \
     --location "$LOCATION" \
@@ -94,7 +96,7 @@ if ! az storage container list \
   -o none >/dev/null 2>&1; then
 
   # Try to acquire an account key as fallback (requires control-plane permissions)
-  SA_KEY="$(az storage account keys list "${AZ_SUB[@]}" \
+  SA_KEY="$(az storage account keys list $AZ_SUB \
     --resource-group "$RG_NAME" \
     --account-name "$SA_NAME" \
     --query "[0].value" -o tsv 2>/dev/null || true)"
