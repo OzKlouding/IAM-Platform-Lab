@@ -19,3 +19,8 @@ Structure
 docs contains architecture, runbooks, and evidence
 infra contains Terraform modules and environments
 scripts contains bootstrap automation
+
+Identity lifecycle design
+Least privilege and privileged access approach
+Policy and audit readiness thinking
+Terraform-driven automation approach
