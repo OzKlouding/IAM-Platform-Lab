@@ -24,3 +24,5 @@ Identity lifecycle design
 Least privilege and privileged access approach
 Policy and audit readiness thinking
 Terraform-driven automation approach
+
+Currently working on
