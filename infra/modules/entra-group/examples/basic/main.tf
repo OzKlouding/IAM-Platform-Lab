@@ -17,7 +17,7 @@ data "azuread_domains" "current" {
 # Create a test user using the entra-user module
 module "test_user" {
   source = "../../../entra-user"
-  
+
   user_principal_name = "grouptest-${formatdate("YYYYMMDDhhmmss", timestamp())}@${data.azuread_domains.current.domains[0].domain_name}"
   display_name        = "Group Test User"
   password            = "ChangeMe123!Secure"
@@ -28,7 +28,7 @@ module "test_user" {
 # Create a group and add the user
 module "test_group" {
   source = "../.."
-  
+
   display_name     = "Cloud Engineers - Test Group"
   description      = "Test group for IAM Platform Lab"
   security_enabled = true
@@ -38,8 +38,8 @@ module "test_group" {
 # Outputs
 output "created_user" {
   value = {
-    upn        = module.test_user.user_principal_name
-    object_id  = module.test_user.object_id
+    upn       = module.test_user.user_principal_name
+    object_id = module.test_user.object_id
   }
 }
 
