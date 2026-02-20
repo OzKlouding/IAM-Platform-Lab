@@ -17,7 +17,7 @@ data "azuread_domains" "current" {
 # Create a test user
 module "test_user" {
   source = "../.."
-  
+
   user_principal_name = "testuser-${formatdate("YYYYMMDDhhmmss", timestamp())}@${data.azuread_domains.current.domains[0].domain_name}"
   display_name        = "Test User - IAM Lab"
   password            = "ChangeMe123!Secure"
